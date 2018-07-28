@@ -7,10 +7,6 @@ public class ClickManager:MonoBehaviour  {
     public string message;
     public int messageArg;
     public float UnuseTime = 0.1f;
-    public AudioSource AudioSource = null;
-    public AudioClip[] AudioClips = null;
-    public float[] SoundDelayTime = new float[] { 0.0f, 0.0f };
-
     private float timer;
     private bool isopen=false;
 
@@ -33,23 +29,6 @@ public class ClickManager:MonoBehaviour  {
             if (isChangeSprite)
                 parentSpriteRenderer.sprite = isopen ? CloseSprite : OpenSprite;
             timer = 0;
-            if (AudioSource != null)
-            {
-                if (AudioClips.Length > 0 && isopen)
-                {
-                    AudioSource.clip = AudioClips[0];
-                }
-                else if(AudioClips.Length >1 && !isopen)
-                {
-                    AudioSource.clip = AudioClips[1];
-                }
-                else
-                {
-                    AudioSource.clip = null;
-                    return;
-                }
-                AudioSource.PlayDelayed(SoundDelayTime[isopen?0:1]);
-            }
         }
       
     }

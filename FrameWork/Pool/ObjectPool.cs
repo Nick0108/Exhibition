@@ -3,8 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 
-public class ObjectPool:Singleton<ObjectPool>
+public class ObjectPool:ISingleton
 {
+    #region 单例模式Singleton
+    private ObjectPool() { }
+    static ObjectPool() { }
+    private static readonly ObjectPool _instance = new ObjectPool();
+    public static ObjectPool Instance { get { return _instance; } }
+    #endregion
+
+    public void Init() { }
+
     public string ResourceDir = "";
 
     Dictionary<string,SubPool> m_pools=new Dictionary<string, SubPool>();

@@ -20,7 +20,7 @@ public class EnterSceneCommand : Controller
                 
                 break;
             case Consts.ARSceneIndex:
-                Game.Instance.FirstPersonCamera = GameObject.Find("ARCore Device/First Person Camera").GetComponent<Camera>();
+                GamePlay.Instance.FirstPersonCamera = GameObject.Find("ARCore Device/First Person Camera").GetComponent<Camera>();
                 //Game.Instance.Sound.PlayBg("BGStart");
                 break;
         }
