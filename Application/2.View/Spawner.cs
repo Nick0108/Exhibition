@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using GoogleARCore;
+//using GoogleARCore;
 public class Spawner : View
 {
 
@@ -38,9 +38,9 @@ public class Spawner : View
         switch (eventName)
         {
 
-            case Consts.E_SpawnCarAtHit: //AR场景根据射线产生的碰撞信息来产生汽车
+            case Consts.E_SpawnCarAtHit://AR场景根据射线产生的碰撞信息来产生汽车
                 SpawnCarAtHitArgs e0 = data as SpawnCarAtHitArgs;
-                SpawnCar(e0.CarID, e0.Hit);
+                SpawnCar(e0.CarID);
                 break;
             case Consts.E_SpawnCarAt://在世界坐标系中产生汽车
                 SpawnCarAtArgs e1 = data as SpawnCarAtArgs;
@@ -66,29 +66,29 @@ public class Spawner : View
         gameModel = GetModel<GameModel>();
         SendEvent(Consts.E_RegisterView, this);
     }
-    public void SpawnCar(int CarID,TrackableHit hit)
-    {
-        CarInfo carInfo = StaticData.Instance.GetCarInfo(CarID);
-        if ( carInfo!=null)
-        {
-            GameObject Car = Game.Instance.ObjectPool.Spawn(carInfo.Name);
-            var anchor = hit.Trackable.CreateAnchor(hit.Pose);
-            Car.transform.parent = anchor.transform;
+    //public void SpawnCar(int CarID,TrackableHit hit)
+    //{
+    //    CarInfo carInfo = StaticData.Instance.GetCarInfo(CarID);
+    //    if ( carInfo!=null)
+    //    {
+    //        GameObject Car = Game.Instance.ObjectPool.Spawn(carInfo.Name);
+    //        var anchor = hit.Trackable.CreateAnchor(hit.Pose);
+    //        Car.transform.parent = anchor.transform;
             
-            //gameModel.ShowedCarList.Add(Car.GetComponent<CarBase>());
-            gameModel.SelectCarIndex = gameModel.ShowedCarList.Count - 1;//产生一个新的之后自动选择该汽车
-            //状态重置
-            Car.transform.localPosition = Vector3.zero;
-            Car.transform.localRotation = Quaternion.identity;
-            //缩小汽车
-            Car.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-            Car.GetComponent<CarBase>().originalScale = Car.transform.localScale;
-            Car.GetComponent<CarBase>().IsShowRealBody=false ;
-            //gameModel.state = State.Show;
-            //return Car;
-        }
-       // return null;
-    }
+    //        //gameModel.ShowedCarList.Add(Car.GetComponent<CarBase>());
+    //        gameModel.SelectCarIndex = gameModel.ShowedCarList.Count - 1;//产生一个新的之后自动选择该汽车
+    //        //状态重置
+    //        Car.transform.localPosition = Vector3.zero;
+    //        Car.transform.localRotation = Quaternion.identity;
+    //        //缩小汽车
+    //        Car.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+    //        Car.GetComponent<CarBase>().originalScale = Car.transform.localScale;
+    //        Car.GetComponent<CarBase>().IsShowRealBody=false ;
+    //        //gameModel.state = State.Show;
+    //        //return Car;
+    //    }
+    //   // return null;
+    //}
     public void SpawnCar(int CarID ,Vector3 position)
     {
         CarInfo carInfo = StaticData.Instance.GetCarInfo(CarID);

@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using GoogleARCore;
+//using GoogleARCore;
 public enum State
 {
     AsyncLoadExhibition,

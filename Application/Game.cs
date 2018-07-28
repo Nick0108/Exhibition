@@ -3,13 +3,13 @@ using System.Collections;
 using System.Runtime.Remoting;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
-using GoogleARCore;
+//using GoogleARCore;
 using UnityEngine.UI;
-using GoogleARCore.Examples.Common;
+//using GoogleARCore.Examples.Common;
 
 #if UNITY_EDITOR
 // Set up touch input propagation while using Instant Preview in the editor.
-using Input = GoogleARCore.InstantPreviewInput;
+//using Input = GoogleARCore.InstantPreviewInput;
 #endif
 
 [RequireComponent(typeof(ObjectPool))]
@@ -86,7 +86,7 @@ public class Game : ApplicationBase<Game>{
     public void Update()
     {
         //ARCore的Update，还没搞清楚具体作用
-        _UpdateApplicationLifecycle();
+        //_UpdateApplicationLifecycle();
         //if (Input.touchCount <= 0)
         //{
         //    return;
@@ -105,7 +105,6 @@ public class Game : ApplicationBase<Game>{
                 case State.None:
                     break;
                 case State.Spawn:
-                    SpawnCarUpdate();
                    // SpawnCarUpdate();
                     break;
                 case State.Show:
@@ -188,65 +187,65 @@ public class Game : ApplicationBase<Game>{
     //但是ARCore中的锚点根据相机位置会不断修正位置，不能通过改变锚点来来修改汽车位置，而且不能保证人们在使用时手机不会晃动（晃动会导致射线位置偏移，导致显示效果模型闪烁移动），所以干脆就只通过旋转手机
     //通过屏幕中心点射出射线来添加VirtualCar指导客户汽车将产生的位置
     private bool hasSpawnVirtualCar = false;
-    private void SpawnCarUpdate()
-    {
-        TrackableHit hit;//这是ARCore专门用的射线碰撞类
-        TrackableHitFlags raycastFilter = TrackableHitFlags.PlaneWithinPolygon |
-            TrackableHitFlags.FeaturePointWithSurfaceNormal;//ARCore射线检测的滤波器
-        if (!hasSpawnVirtualCar)
-        {
-            if (Frame.Raycast(Screen.width/2, Screen.height / 2, raycastFilter, out hit))
-            {
-                if ((hit.Trackable is DetectedPlane) &&
-                                Vector3.Dot(FirstPersonCamera.transform.position - hit.Pose.position,
-                                    hit.Pose.rotation * Vector3.up) < 0)//射线角度必须是0-180度，在背面不做处理
-                {
+//    private void SpawnCarUpdate()
+//    {
+//        TrackableHit hit;//这是ARCore专门用的射线碰撞类
+//        TrackableHitFlags raycastFilter = TrackableHitFlags.PlaneWithinPolygon |
+//            TrackableHitFlags.FeaturePointWithSurfaceNormal;//ARCore射线检测的滤波器
+//        if (!hasSpawnVirtualCar)
+//        {
+//            if (Frame.Raycast(Screen.width/2, Screen.height / 2, raycastFilter, out hit))
+//            {
+//                if ((hit.Trackable is DetectedPlane) &&
+//                                Vector3.Dot(FirstPersonCamera.transform.position - hit.Pose.position,
+//                                    hit.Pose.rotation * Vector3.up) < 0)//射线角度必须是0-180度，在背面不做处理
+//                {
                    
-                }
-                else
-                {
-                    //产生一辆虚拟的黑车
-                    SendEvent(Consts.E_SpawnCar, Consts.V_Spawner, new SpawnCarArgs(gameModel.currentSpawnCarID,false));
-                    gameModel.VirtualBodyCar.transform.position = hit.Pose.position;
-                    hasSpawnVirtualCar = true;
-                }
+//                }
+//                else
+//                {
+//                    //产生一辆虚拟的黑车
+//                    SendEvent(Consts.E_SpawnCar, Consts.V_Spawner, new SpawnCarArgs(gameModel.currentSpawnCarID,false));
+//                    gameModel.VirtualBodyCar.transform.position = hit.Pose.position;
+//                    hasSpawnVirtualCar = true;
+//                }
                     
-            }
+//            }
 
-        }
-        else
-        {
+//        }
+//        else
+//        {
             
-                if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out hit))
-                {
-                    if ((hit.Trackable is DetectedPlane) &&
-                                    Vector3.Dot(FirstPersonCamera.transform.position - hit.Pose.position,
-                                        hit.Pose.rotation * Vector3.up) < 0)
-                    {
-                        gameModel.VirtualBodyCar.SetActive(false);
-                    }
-                    else
-                    {
-#if UNITY_EDITOR
-                        Debug.Log(hit.Pose.position);
-#endif
-                    if (Input.touchCount > 0)
-                    {
-                        SendEvent(Consts.E_SpawnCarAtHit, Consts.V_Spawner, new SpawnCarAtHitArgs { CarID = gameModel.currentSpawnCarID, Hit = hit });
-                        gameModel.CurrentCar.IsShowRealBody = true;//这里本来想把虚拟车和真车直接放一起，通过开关显示虚拟车还是真车，目前这种模式下就不需要了
-                        gameModel.VirtualBodyCar.SetActive(false);
-                        gameModel.state = State.Show;//更改游戏状态为展示状态，Update中将调用ShowCarUpdate
-                    }
-                    else
-                    {
-                        gameModel.VirtualBodyCar.transform.position = hit.Pose.position;
-                    }
-                }
+//                if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out hit))
+//                {
+//                    if ((hit.Trackable is DetectedPlane) &&
+//                                    Vector3.Dot(FirstPersonCamera.transform.position - hit.Pose.position,
+//                                        hit.Pose.rotation * Vector3.up) < 0)
+//                    {
+//                        gameModel.VirtualBodyCar.SetActive(false);
+//                    }
+//                    else
+//                    {
+//#if UNITY_EDITOR
+//                        Debug.Log(hit.Pose.position);
+//#endif
+//                    if (Input.touchCount > 0)
+//                    {
+//                        SendEvent(Consts.E_SpawnCarAtHit, Consts.V_Spawner, new SpawnCarAtHitArgs { CarID = gameModel.currentSpawnCarID, Hit = hit });
+//                        gameModel.CurrentCar.IsShowRealBody = true;//这里本来想把虚拟车和真车直接放一起，通过开关显示虚拟车还是真车，目前这种模式下就不需要了
+//                        gameModel.VirtualBodyCar.SetActive(false);
+//                        gameModel.state = State.Show;//更改游戏状态为展示状态，Update中将调用ShowCarUpdate
+//                    }
+//                    else
+//                    {
+//                        gameModel.VirtualBodyCar.transform.position = hit.Pose.position;
+//                    }
+//                }
                     
-                }
+//                }
             
-        }
-    }
+//        }
+//    }
     
     private void ShowCarUpdate()
     {
@@ -322,44 +321,44 @@ public class Game : ApplicationBase<Game>{
     /// <summary>
     /// Check and update the application lifecycle.
     /// </summary>
-    private void _UpdateApplicationLifecycle()
-    {
-        // Exit the app when the 'back' button is pressed.
-        if (Input.GetKey(KeyCode.Escape))
-        {
-            Application.Quit();
-        }
+    //private void _UpdateApplicationLifecycle()
+    //{
+    //    // Exit the app when the 'back' button is pressed.
+    //    if (Input.GetKey(KeyCode.Escape))
+    //    {
+    //        Application.Quit();
+    //    }
 
-        // Only allow the screen to sleep when not tracking.
-        if (Session.Status != SessionStatus.Tracking)
-        {
-            const int lostTrackingSleepTimeout = 15;
-            Screen.sleepTimeout = lostTrackingSleepTimeout;
-        }
-        else
-        {
-            Screen.sleepTimeout = SleepTimeout.NeverSleep;
-        }
+    //    // Only allow the screen to sleep when not tracking.
+    //    if (Session.Status != SessionStatus.Tracking)
+    //    {
+    //        const int lostTrackingSleepTimeout = 15;
+    //        Screen.sleepTimeout = lostTrackingSleepTimeout;
+    //    }
+    //    else
+    //    {
+    //        Screen.sleepTimeout = SleepTimeout.NeverSleep;
+    //    }
 
-        if (m_IsQuitting)
-        {
-            return;
-        }
+    //    if (m_IsQuitting)
+    //    {
+    //        return;
+    //    }
 
-        // Quit if ARCore was unable to connect and give Unity some time for the toast to appear.
-        if (Session.Status == SessionStatus.ErrorPermissionNotGranted)
-        {
-            _ShowAndroidToastMessage("Camera permission is needed to run this application.");
-            m_IsQuitting = true;
-            Invoke("_DoQuit", 0.5f);
-        }
-        else if (Session.Status.IsError())
-        {
-            _ShowAndroidToastMessage("ARCore encountered a problem connecting.  Please start the app again.");
-            m_IsQuitting = true;
-            Invoke("_DoQuit", 0.5f);
-        }
-    }
+    //    // Quit if ARCore was unable to connect and give Unity some time for the toast to appear.
+    //    if (Session.Status == SessionStatus.ErrorPermissionNotGranted)
+    //    {
+    //        _ShowAndroidToastMessage("Camera permission is needed to run this application.");
+    //        m_IsQuitting = true;
+    //        Invoke("_DoQuit", 0.5f);
+    //    }
+    //    else if (Session.Status.IsError())
+    //    {
+    //        _ShowAndroidToastMessage("ARCore encountered a problem connecting.  Please start the app again.");
+    //        m_IsQuitting = true;
+    //        Invoke("_DoQuit", 0.5f);
+    //    }
+    //}
 
     /// <summary>
     /// Actually quit the application.
@@ -440,8 +439,7 @@ public class Game : ApplicationBase<Game>{
             }
 
         }
-#endif
-#if UNITY_EDITOR
+#else
         loadingSlider.value = Mathf.Lerp(timer, loadMaxtime, Time.deltaTime * loadingSpeed);
 #endif
         loadingText.text = ((int)(loadingSlider.value * 100)).ToString() + "%";
