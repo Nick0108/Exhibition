@@ -72,7 +72,7 @@ public class SubPool
             go.SetActive(false);
             //选择2，创建物体是将其挂到Game上保证在重载关卡时不消失
             //在ARcore中物体的父物体会被放到锚点上，回收时放回到自己下面
-            Transform parent = GamePlay.Instance.transform.Find(m_prefab.name);
+            Transform parent = Game.Instance.transform.Find(m_prefab.name);
             if (parent != null)
             {
                 go.transform.parent = parent;
@@ -81,7 +81,7 @@ public class SubPool
             {
                 GameObject parentgo = new GameObject();
                 parentgo.name = m_prefab.name;
-                parentgo.transform.parent = GamePlay.Instance.transform;
+                parentgo.transform.parent = Game.Instance.transform;
                 parent = parentgo.transform;
             }
             go.transform.parent = parent;

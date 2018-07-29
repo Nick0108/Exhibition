@@ -13,8 +13,8 @@ public class BMWi3Controller : CarBase
         base.Awake();
         explodePartManager = this.GetComponent<ExplodePartManager>();
         originalScale = transform.localScale;
-        
 
+        SpecialReset();
         //Reset();
     }
 
@@ -119,5 +119,11 @@ public class BMWi3Controller : CarBase
         if (explodePartManager != null)
             explodePartManager.Disintegrate();
 
+    }
+
+    public void SpecialReset()
+    {
+        CurrentTrunkAngle = 0;
+        IsTrunkOpen = false;
     }
 }

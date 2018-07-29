@@ -16,9 +16,9 @@ class StartUpCommand : Controller
         RegisterController(Consts.E_EnterScene, typeof(EnterSceneCommand));
         RegisterController(Consts.E_ExitScene, typeof(ExitSceneCommand));
         RegisterController(Consts.E_RegisterView, typeof(RegisterViewCommand));
-        //RegisterView(Game.Instance.GetComponent<UIManager>());
-        //RegisterView(Game.Instance.GetComponent<Spawner>());
-        GamePlay.Instance.gameModel = gameModel;
+       //RegisterView(Game.Instance.GetComponent<UIManager>());
+       //RegisterView(Game.Instance.GetComponent<Spawner>());
+        Game.Instance.gameModel = gameModel;
         gameModel.Init();
        
     }

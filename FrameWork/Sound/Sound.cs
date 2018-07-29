@@ -4,26 +4,18 @@ using System.Text;
 using UnityEngine;
 
 
-public class Sound : ISingleton
+public class Sound:Singleton<Sound>
 {
-    #region 单例模式Singleton
-    private Sound() { }
-    static Sound() { }
-    private static readonly Sound _instance = new Sound();
-    public static Sound Instance { get { return _instance; } }
-    #endregion
-    public void Init() { }
+    protected override void Awake()
+    {
+        base.Awake();
+        ResourceDir = "Music";
+        m_bgSound = this.gameObject.AddComponent<AudioSource>();
+        m_bgSound.playOnAwake = false;
+        m_bgSound.loop = true;
 
-    //protected override void Awake()
-    //{
-    //    base.Awake();
-    //    ResourceDir = "Music";
-    //    m_bgSound = this.gameObject.AddComponent<AudioSource>();
-    //    m_bgSound.playOnAwake = false;
-    //    m_bgSound.loop = true;
-
-    //    m_effectSound=this.gameObject.AddComponent<AudioSource>();
-    //}
+        m_effectSound=this.gameObject.AddComponent<AudioSource>();
+    }
 
     public string ResourceDir = "";
     AudioSource m_bgSound;
