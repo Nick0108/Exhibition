@@ -53,12 +53,16 @@ public abstract class CarBase :ReusableObject{
     public bool IsTrunkOpen = false;
 
     //控制缩放
-    public float rotationSmooth = 2;
+    public float rotationSmooth = 2f;
     public float scaleSmooth = 0.01f;
     public Vector3 originalScale;
-    private float currentScraling = 1;
-    public float MaxScale = 5;
+    private float currentScraling = 1f;
+    public float MaxScale = 10f;
     public float MinScale = 0.5f;
+    public bool TurnMaxScale = false;
+    private bool lastIsMaxScale = false;
+    protected float AutoScaleSpeed = 10.0f;
+
     //引擎盖和后备箱的旋转方式由子类实现
     public virtual void BonnetUpdate()
     {
@@ -101,6 +105,13 @@ public abstract class CarBase :ReusableObject{
     private Color newColor;
     private bool isChangeColor=false;
     public float ColorSmooth = 1;
+
+    public float WheelSpeedPara = 50.0f;
+    public Transform Wheel_1;
+    public Transform Wheel_2;
+    public Transform Wheel_3;
+    public Transform Wheel_4;
+
 
     //public float AlphaSmooth = 1;
     public float MinAlpha = 0.3f;//汽车透明化的透明程度的最小值
@@ -161,24 +172,44 @@ public abstract class CarBase :ReusableObject{
         }
     }
 
-    private bool isShowRealBody = false;
-
     private GameObject VirtualBody;
     private GameObject RealBody;
+    private bool isShowRealBody = false;
+    /// <summary>
+    /// 是否显示车的本体，还是显示阴影
+    /// </summary>
     public bool IsShowRealBody
     {
         get
         {
             return isShowRealBody;
         }
-
-        set
+        private set
         {
-            ////1
             isShowRealBody = value;
-            RealBody.SetActive(value);
-            VirtualBody.SetActive(!value);
         }
+    }
+
+    public void SetShowRealBody(bool isActive)
+    {
+        IsShowRealBody = isActive;
+        RealBody.SetActive(isActive);
+        VirtualBody.SetActive(!isActive);
+    }
+
+    public void HideShowCar(bool isHide)
+    {
+        if (isHide)
+        {
+            RealBody.SetActive(false);
+            VirtualBody.SetActive(false);
+        }
+        else
+        {
+            RealBody.SetActive(isShowRealBody);
+            VirtualBody.SetActive(!isShowRealBody);
+        }
+        
     }
    
     protected void Awake()
@@ -188,6 +219,10 @@ public abstract class CarBase :ReusableObject{
     }
     public virtual void ChangeScale(float offset)
     {
+        if (Game.Instance.IsDriving)
+        {
+            return;
+        }
         float scaleFactor = offset * scaleSmooth;
         currentScraling += scaleFactor;
         currentScraling = Mathf.Clamp(currentScraling, MinScale, MaxScale);
@@ -196,6 +231,10 @@ public abstract class CarBase :ReusableObject{
     }
     public virtual void RotateX(float offset)
     {
+        if (Game.Instance.IsDriving)
+        {
+            return;
+        }
         transform.Rotate(0, offset * rotationSmooth, 0);
     }
     public virtual void ChangeShellColor(int ColorNum)
@@ -240,6 +279,8 @@ public abstract class CarBase :ReusableObject{
     {
         DoorUpdate();
         ShellColorUpdate();
+        UpdateCarPosition();
+        AutoTurnScale();
     }
     public virtual void DoorUpdate()
     {
@@ -280,5 +321,76 @@ public abstract class CarBase :ReusableObject{
         Game.Instance.gameModel.ShowedCarList.Remove(this);
     }
 
+    public virtual void GoForward()
+    {
+        //Vector3 localForward = transform.worldToLocalMatrix.MultiplyVector(transform.forward);
+        transform.localPosition += transform.forward * DrivingModel.Instance.GetCarVolecity() / 600.0f * transform.localScale.z;
+        transform.Rotate(DrivingModel.Instance.Direction);
+        Wheel_1.transform.Rotate(-GetWheelSpeed(), 0, 0);
+        Wheel_2.transform.Rotate(GetWheelSpeed(), 0, 0);
+        Wheel_3.transform.Rotate(-GetWheelSpeed(), 0, 0);
+        Wheel_4.transform.Rotate(GetWheelSpeed(), 0, 0);
+    }
 
+    public virtual void GoBackward()
+    {
+        transform.localPosition -= transform.forward * DrivingModel.Instance.GetCarVolecity() / 600.0f * transform.localScale.z;
+        transform.Rotate(DrivingModel.Instance.Direction);
+        Wheel_1.transform.Rotate(GetWheelSpeed(), 0, 0);
+        Wheel_2.transform.Rotate(-GetWheelSpeed(), 0, 0);
+        Wheel_3.transform.Rotate(GetWheelSpeed(), 0, 0);
+        Wheel_4.transform.Rotate(-GetWheelSpeed(), 0, 0);
+    }
+
+    private void UpdateCarPosition()
+    {
+        if (DrivingModel.Instance.GetCarVolecity() > 0)
+        {
+            CarBase car = Game.Instance.gameModel.CurrentCar;
+            if (car != null)
+            {
+                if (DrivingModel.Instance.isCarForward)
+                {
+                    car.GoForward();
+                }
+                else
+                {
+                    car.GoBackward();
+                }
+            }
+        }
+    }
+
+    private void AutoTurnScale()
+    {
+        if(TurnMaxScale!= lastIsMaxScale)
+        {
+            if (TurnMaxScale)
+            {
+                float scaleFactor = AutoScaleSpeed * scaleSmooth;
+                currentScraling += scaleFactor;
+                currentScraling = Mathf.Clamp(currentScraling, MinScale, MaxScale);
+                if(currentScraling == MaxScale)
+                {
+                    lastIsMaxScale = true;
+                }
+            }
+            else
+            {
+                float scaleFactor = AutoScaleSpeed * scaleSmooth;
+                currentScraling -= scaleFactor;
+                currentScraling = Mathf.Clamp(currentScraling, MinScale, MaxScale);
+                if (currentScraling == MinScale)
+                {
+                    lastIsMaxScale = false;
+                }
+            }
+            transform.localScale = currentScraling * originalScale;
+        }
+    }
+
+    protected float GetWheelSpeed()
+    {
+        return WheelSpeedPara * (DrivingModel.Instance.GetCarVolecity() / DrivingModel.MAX_VOLECITY);
+    }
 }

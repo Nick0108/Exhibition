@@ -11,7 +11,7 @@ public abstract class View:MonoBehaviour
 
     //关心的事件列表
     [HideInInspector]
-    public List<string> AttationEvents=new List<string>();
+    public List<string> AttationEvents = new List<string>();
     //注册关心的事件
     public abstract void RegisterEvents();
     

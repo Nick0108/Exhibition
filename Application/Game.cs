@@ -1,15 +1,22 @@
-﻿using UnityEngine;
+﻿/* Create by @未知
+ * Create time: 2018.06？
+ * Discrition: 这是主入口，将Game类贯穿整个展示的各个阶段
+ *             通过gameModel.state来判断展示的五个阶段（详见UpdateGameState）
+ *             另外，场景加载逻辑也被写在这里了//TODO:@Zidong 这个需要优化
+ * Modify：@Zidong（2018.07.27） 增加对驾驶模式的判断与处理（详见IsDriving的引用）
+ */
+using UnityEngine;
 using System.Collections;
 using System.Runtime.Remoting;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
-//using GoogleARCore;
+using GoogleARCore;
 using UnityEngine.UI;
-//using GoogleARCore.Examples.Common;
+using GoogleARCore.Examples.Common;
 
 #if UNITY_EDITOR
 // Set up touch input propagation while using Instant Preview in the editor.
-//using Input = GoogleARCore.InstantPreviewInput;
+using Input = GoogleARCore.InstantPreviewInput;
 #endif
 
 [RequireComponent(typeof(ObjectPool))]
@@ -29,26 +36,51 @@ public class Game : ApplicationBase<Game>{
     public GameModel gameModel;
     private Touch oldTouch1;  //上次触摸点1(手指1)  
     private Touch oldTouch2;  //上次触摸点2(手指2)  
-    
+
+    /// <summary>
+    /// 是否是驾驶模式
+    /// </summary>
+    private bool driving = false;
+    public bool IsDriving
+    {
+        get { return driving; }
+        set { driving = value; }
+    }
+
+    /// <summary>
+    /// 是否隐藏云点和平台
+    /// </summary>
+    private bool hideCloudPoint = false;
+    public bool IsHideCloudPoint
+    {
+        get { return hideCloudPoint; }
+        set { hideCloudPoint = value; }
+    }
+
     /// <summary>
     /// The first-person camera being used to render the passthrough camera image (i.e. AR background).
     /// </summary>
-    
+
     // public Camera ExhibitionCamera; 
     //异步加载内容
-    private float loadingSpeed = 1;
+    private float loadingSpeed = 1f;
     private float targetValue;
     private AsyncOperation operation;
     [HideInInspector]
     public Slider loadingSlider;//异步加载UI
     [HideInInspector]
+    public Image loadingLogoImage;
+    [HideInInspector]
     public Text loadingText;
-    private float loadMaxtime = 1;//加载最大时间
+    private float loadMaxtime = 1f;//加载最大时间
     private float timer = 0;
 
     //ARCore 使用变量
     private bool m_IsQuitting = false;
     public Camera FirstPersonCamera;//用于AR场景中的第一人称摄像机
+    private TrackableHitFlags raycastFilter = TrackableHitFlags.PlaneWithinPolygon 
+                                              | TrackableHitFlags.FeaturePointWithSurfaceNormal;//利用二进制位运算对结果进行选择
+    private TrackableHit ARTrackhit;//这是ARCore专门用的射线碰撞类
 
     private 
     void Start()
@@ -86,12 +118,16 @@ public class Game : ApplicationBase<Game>{
     public void Update()
     {
         //ARCore的Update，还没搞清楚具体作用
-        //_UpdateApplicationLifecycle();
-        //if (Input.touchCount <= 0)
-        //{
-        //    return;
-        //}
+        _UpdateApplicationLifecycle();
         //有限状态机
+        UpdateGameState();
+    }
+
+    /// <summary>
+    /// 通过当前有限状态机判断当前状态并执行对应逻辑
+    /// </summary>
+    private void UpdateGameState()
+    {
         if (gameModel != null)
         {
             switch (gameModel.state)
@@ -105,18 +141,22 @@ public class Game : ApplicationBase<Game>{
                 case State.None:
                     break;
                 case State.Spawn:
-                   // SpawnCarUpdate();
+                    SpawnCarUpdate();//AR模式下，产生一辆虚拟的黑色车指示将要产生的车
                     break;
-                case State.Show:
-                    ShowCarUpdate();
+                case State.ARCarShow:
+                    ShowCarUpdate();//AR模式下，产生车辆后的展示阶段
                     break;
             }
 
         }
-       
     }
+
     private void ExhibitionUpdate()
     {
+        if (IsDriving)
+        {
+            return;
+        }
         Touch touch;
         if (1 == Input.touchCount)
         {
@@ -146,7 +186,7 @@ public class Game : ApplicationBase<Game>{
 #if UNITY_EDITOR
                 Debug.Log(Input.touches[0].deltaPosition.x);
 #endif
-                if(gameModel.CurrentCar!=null)
+                if(gameModel.CurrentCar != null)
                 {
                     gameModel.CurrentCar.RotateX(-Input.touches[0].deltaPosition.x);
                 }
@@ -184,71 +224,117 @@ public class Game : ApplicationBase<Game>{
         }
     }
     //VirtualCar 是用一个黑色透明的汽车模型来向用户展示将要产生汽车的位置，本来是要做成长按生成VirtualCar松开后产生真汽车吧VirtualCar隐藏掉，
-    //但是ARCore中的锚点根据相机位置会不断修正位置，不能通过改变锚点来来修改汽车位置，而且不能保证人们在使用时手机不会晃动（晃动会导致射线位置偏移，导致显示效果模型闪烁移动），所以干脆就只通过旋转手机
-    //通过屏幕中心点射出射线来添加VirtualCar指导客户汽车将产生的位置
-    private bool hasSpawnVirtualCar = false;
-//    private void SpawnCarUpdate()
-//    {
-//        TrackableHit hit;//这是ARCore专门用的射线碰撞类
-//        TrackableHitFlags raycastFilter = TrackableHitFlags.PlaneWithinPolygon |
-//            TrackableHitFlags.FeaturePointWithSurfaceNormal;//ARCore射线检测的滤波器
-//        if (!hasSpawnVirtualCar)
-//        {
-//            if (Frame.Raycast(Screen.width/2, Screen.height / 2, raycastFilter, out hit))
-//            {
-//                if ((hit.Trackable is DetectedPlane) &&
-//                                Vector3.Dot(FirstPersonCamera.transform.position - hit.Pose.position,
-//                                    hit.Pose.rotation * Vector3.up) < 0)//射线角度必须是0-180度，在背面不做处理
-//                {
-                   
-//                }
-//                else
-//                {
-//                    //产生一辆虚拟的黑车
-//                    SendEvent(Consts.E_SpawnCar, Consts.V_Spawner, new SpawnCarArgs(gameModel.currentSpawnCarID,false));
-//                    gameModel.VirtualBodyCar.transform.position = hit.Pose.position;
-//                    hasSpawnVirtualCar = true;
-//                }
-                    
-//            }
+    //但是ARCore中的锚点根据相机位置会不断修正位置，不能通过改变锚点来来修改汽车位置，而且不能保证人们在使用时手机不会晃动（晃动会导致射线位置偏移，导致显示效果模型闪烁移动），
+    //所以干脆就只通过旋转手机通过屏幕中心点射出射线来添加VirtualCar指导客户汽车将产生的位置
+    private bool hasSpawnCar = false;
+    private bool hasShowARCar = false;
+    /// <summary>
+    /// AR模式下，产生一辆虚拟的黑色车指示将要产生的车
+    /// </summary>
+    private void SpawnCarUpdate()
+    {
+        if (IsDriving)
+        {
+            return;
+        }
+        if (IsHideCloudPoint)
+        {
+            IsHideCloudPoint = false;
+        }
+        if (!hasSpawnCar)
+        {
+            SendEvent(Consts.E_SpawnCar, Consts.V_Spawner, new SpawnCarArgs(gameModel.currentSpawnCarID, true));
+            gameModel.CurrentCar.HideShowCar(true);
+            hasSpawnCar = true;
+        }
+        if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out ARTrackhit))
+        {
+            if ((ARTrackhit.Trackable is DetectedPlane) &&
+                            Vector3.Dot(FirstPersonCamera.transform.position - ARTrackhit.Pose.position,
+                                ARTrackhit.Pose.rotation * Vector3.up) < 0)
+            {
+                //当射线角度必须是0-180度，在背面不做处理
+                gameModel.CurrentCar.HideShowCar(true);
+            }
+            else
+            {
+                if(!(ARTrackhit.Trackable is DetectedPlane))
+                {
+                    gameModel.CurrentCar.HideShowCar(true);
+                    return;
+                }
+                if (!hasShowARCar)
+                {
+                    if (Input.touchCount > 0)//任意点击行为
+                    {
+                        gameModel.CurrentCar.HideShowCar(false);
+                        gameModel.CurrentCar.SetShowRealBody(true);//这里本来想把虚拟车和真车直接放一起，通过开关显示虚拟车还是真车，目前这种模式下就不需要了
+                        hasShowARCar = true;
+                        gameModel.state = State.ARCarShow;//更改游戏状态为展示状态，Update中将调用ShowCarUpdate
+                    }
+                    else
+                    {
+                        gameModel.CurrentCar.HideShowCar(false);
+                        gameModel.CurrentCar.SetShowRealBody(false);
+                        gameModel.CurrentCar.transform.position = ARTrackhit.Pose.position;
+                    }
+                }
+                else
+                {
+                    gameModel.CurrentCar.HideShowCar(false);
+                    gameModel.CurrentCar.SetShowRealBody(true);
+                    gameModel.CurrentCar.transform.position = ARTrackhit.Pose.position;
+                }
+            }
+
+        }
 
 //        }
 //        else
 //        {
-            
-//                if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out hit))
+
+//            if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out ARTrackhit))
+//            {
+//                if ((ARTrackhit.Trackable is DetectedPlane) &&
+//                                Vector3.Dot(FirstPersonCamera.transform.position - ARTrackhit.Pose.position,
+//                                    ARTrackhit.Pose.rotation * Vector3.up) < 0)
 //                {
-//                    if ((hit.Trackable is DetectedPlane) &&
-//                                    Vector3.Dot(FirstPersonCamera.transform.position - hit.Pose.position,
-//                                        hit.Pose.rotation * Vector3.up) < 0)
-//                    {
-//                        gameModel.VirtualBodyCar.SetActive(false);
-//                    }
-//                    else
-//                    {
+//                    gameModel.CurrentCar.HideShowCar(false);
+//                }
+//                else
+//                {
 //#if UNITY_EDITOR
-//                        Debug.Log(hit.Pose.position);
+//                    Debug.Log(ARTrackhit.Pose.position);
 //#endif
-//                    if (Input.touchCount > 0)
+//                    if (Input.touchCount > 0)//任意点击行为
 //                    {
-//                        SendEvent(Consts.E_SpawnCarAtHit, Consts.V_Spawner, new SpawnCarAtHitArgs { CarID = gameModel.currentSpawnCarID, Hit = hit });
-//                        gameModel.CurrentCar.IsShowRealBody = true;//这里本来想把虚拟车和真车直接放一起，通过开关显示虚拟车还是真车，目前这种模式下就不需要了
-//                        gameModel.VirtualBodyCar.SetActive(false);
-//                        gameModel.state = State.Show;//更改游戏状态为展示状态，Update中将调用ShowCarUpdate
+//                        SendEvent(Consts.E_SpawnCarAtHit, Consts.V_Spawner, new SpawnCarAtHitArgs { CarID = gameModel.currentSpawnCarID, Hit = ARTrackhit });
+//                        gameModel.CurrentCar.SetShowRealBody(true);//这里本来想把虚拟车和真车直接放一起，通过开关显示虚拟车还是真车，目前这种模式下就不需要了
+//                        gameModel.state = State.ARCarShow;//更改游戏状态为展示状态，Update中将调用ShowCarUpdate
 //                    }
 //                    else
 //                    {
-//                        gameModel.VirtualBodyCar.transform.position = hit.Pose.position;
+//                        gameModel.CurrentCar.transform.position = ARTrackhit.Pose.position;
 //                    }
 //                }
-                    
-//                }
-            
+
+//            }
+
 //        }
-//    }
-    
+    }
+    /// <summary>
+    /// AR模式下，产生车辆后的展示阶段
+    /// </summary>
     private void ShowCarUpdate()
     {
+        if(IsDriving)
+        {
+            return;
+        }
+        if (!IsHideCloudPoint)
+        {
+            IsHideCloudPoint = true;
+        }
         if (Input.touchCount <= 0)
             return;
         Touch touch;
@@ -318,47 +404,49 @@ public class Game : ApplicationBase<Game>{
             }
         }
     }
+
+    #region ARCore的demo自带代码
     /// <summary>
     /// Check and update the application lifecycle.
     /// </summary>
-    //private void _UpdateApplicationLifecycle()
-    //{
-    //    // Exit the app when the 'back' button is pressed.
-    //    if (Input.GetKey(KeyCode.Escape))
-    //    {
-    //        Application.Quit();
-    //    }
+    private void _UpdateApplicationLifecycle()
+    {
+        // Exit the app when the 'back' button is pressed.
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
 
-    //    // Only allow the screen to sleep when not tracking.
-    //    if (Session.Status != SessionStatus.Tracking)
-    //    {
-    //        const int lostTrackingSleepTimeout = 15;
-    //        Screen.sleepTimeout = lostTrackingSleepTimeout;
-    //    }
-    //    else
-    //    {
-    //        Screen.sleepTimeout = SleepTimeout.NeverSleep;
-    //    }
+        // Only allow the screen to sleep when not tracking.
+        if (Session.Status != SessionStatus.Tracking)
+        {
+            const int lostTrackingSleepTimeout = 15;
+            Screen.sleepTimeout = lostTrackingSleepTimeout;
+        }
+        else
+        {
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        }
 
-    //    if (m_IsQuitting)
-    //    {
-    //        return;
-    //    }
+        if (m_IsQuitting)
+        {
+            return;
+        }
 
-    //    // Quit if ARCore was unable to connect and give Unity some time for the toast to appear.
-    //    if (Session.Status == SessionStatus.ErrorPermissionNotGranted)
-    //    {
-    //        _ShowAndroidToastMessage("Camera permission is needed to run this application.");
-    //        m_IsQuitting = true;
-    //        Invoke("_DoQuit", 0.5f);
-    //    }
-    //    else if (Session.Status.IsError())
-    //    {
-    //        _ShowAndroidToastMessage("ARCore encountered a problem connecting.  Please start the app again.");
-    //        m_IsQuitting = true;
-    //        Invoke("_DoQuit", 0.5f);
-    //    }
-    //}
+        // Quit if ARCore was unable to connect and give Unity some time for the toast to appear.
+        if (Session.Status == SessionStatus.ErrorPermissionNotGranted)
+        {
+            _ShowAndroidToastMessage("Camera permission is needed to run this application.");
+            m_IsQuitting = true;
+            Invoke("_DoQuit", 0.5f);
+        }
+        else if (Session.Status.IsError())
+        {
+            _ShowAndroidToastMessage("ARCore encountered a problem connecting.  Please start the app again.");
+            m_IsQuitting = true;
+            Invoke("_DoQuit", 0.5f);
+        }
+    }
 
     /// <summary>
     /// Actually quit the application.
@@ -388,6 +476,10 @@ public class Game : ApplicationBase<Game>{
             }));
         }
     }
+    #endregion
+
+    #region 场景加载（含异步处理）
+    //TODO:@Zidong 接手的项目之前是这样写的，没有直接利用operation.progress的值，或者可以尝试优化一下？因为现在读条到100%后还要等一小段时间
     public void LoadScene(int level)
     {
         //--退出上一场景
@@ -418,7 +510,7 @@ public class Game : ApplicationBase<Game>{
     private void AsyncLoadSceneUpdate()
     {
         
-        if (operation == null||loadingSlider==null)
+        if (operation == null||loadingSlider==null|| loadingLogoImage == null)
             return;
         timer += Time.deltaTime;
         targetValue = operation.progress;
@@ -428,27 +520,29 @@ public class Game : ApplicationBase<Game>{
             //operation.progress的值最大为0.9  
             targetValue = 1.0f;
         }
-#if UNITY_ANDROID
+//#if UNITY_ANDROID
         if (targetValue != loadingSlider.value)
         {
             //插值运算
-            loadingSlider.value = Mathf.Lerp(loadingSlider.value, targetValue, Time.deltaTime * loadingSpeed);
+            loadingSlider.value = loadingLogoImage.fillAmount = Mathf.Lerp(loadingSlider.value, targetValue, Time.deltaTime * loadingSpeed);
+            //loadingSlider.value = loadingLogoImage.fillAmount = Mathf.Lerp(0, loadMaxtime, Time.deltaTime * loadingSpeed);
             if (Mathf.Abs(loadingSlider.value - targetValue) < 0.01f)
             {
                 loadingSlider.value = targetValue;
             }
 
         }
-#else
-        loadingSlider.value = Mathf.Lerp(timer, loadMaxtime, Time.deltaTime * loadingSpeed);
-#endif
+//#else
+        //loadingSlider.value = Mathf.Lerp(timer, loadMaxtime, Time.deltaTime * loadingSpeed);
+//#endif
         loadingText.text = ((int)(loadingSlider.value * 100)).ToString() + "%";
 
         if ((int)(loadingSlider.value * 100) == 100&&timer>=loadMaxtime)
         {
             //允许异步加载完毕后自动切换场景  
             operation.allowSceneActivation = true;
-            
+            loadingSlider.handleRect.gameObject.SetActive(false);
+            loadingText.gameObject.SetActive(false);
             gameModel.state = State.Exhibition;
         }
     }
@@ -461,4 +555,5 @@ public class Game : ApplicationBase<Game>{
         //发布事件
         SendEvent(Consts.E_EnterScene, e);
     }
+    #endregion
 }

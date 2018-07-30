@@ -126,4 +126,24 @@ public class BMWi3Controller : CarBase
         CurrentTrunkAngle = 0;
         IsTrunkOpen = false;
     }
+
+    public override void GoForward()
+    {
+        transform.localPosition += transform.right * DrivingModel.Instance.GetCarVolecity() / 600.0f * transform.localScale.z;
+        transform.Rotate(DrivingModel.Instance.Direction);
+        Wheel_1.transform.Rotate(0, GetWheelSpeed(), 0);
+        Wheel_2.transform.Rotate(0, GetWheelSpeed(), 0);
+        Wheel_3.transform.Rotate(0, GetWheelSpeed(), 0);
+        Wheel_4.transform.Rotate(0, GetWheelSpeed(), 0);
+    }
+
+    public override void GoBackward()
+    {
+        transform.localPosition -= transform.right * DrivingModel.Instance.GetCarVolecity() / 600.0f * transform.localScale.z;
+        transform.Rotate(DrivingModel.Instance.Direction);
+        Wheel_1.transform.Rotate(0, -GetWheelSpeed(), 0);
+        Wheel_2.transform.Rotate(0, -GetWheelSpeed(), 0);
+        Wheel_3.transform.Rotate(0, -GetWheelSpeed(), 0);
+        Wheel_4.transform.Rotate(0, -GetWheelSpeed(), 0);
+    }
 }

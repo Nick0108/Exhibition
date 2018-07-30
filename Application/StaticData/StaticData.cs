@@ -22,7 +22,7 @@ public class StaticData : Singleton<StaticData>
     }
     void InitCar()
     {
-        m_Cars.Add(0, new CarInfo() { ID=0,Name="BMWi8", });
+        m_Cars.Add(0, new CarInfo() { ID = 0, Name = "BMWi8", });
         m_Cars.Add(1, new CarInfo() { ID = 1, Name = "BMWi3", });
     }
     public CarInfo GetCarInfo(int CarID)

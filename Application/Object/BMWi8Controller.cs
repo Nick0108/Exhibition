@@ -4,15 +4,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 //[ExecuteInEditMode]
-public class BMWi8Controller : CarBase {
+public class BMWi8Controller : CarBase
+{
 
 
     //public Vector3 TargetRotation = new Vector3(36.5f, -30.4f, 60);
     //private GameObject LightButton;
     private ExplodePartManager explodePartManager;
-   
+
     // Use this for initialization
-    new void Awake() {
+    new void Awake()
+    {
         base.Awake();
         explodePartManager = this.GetComponent<ExplodePartManager>();
         //originalScale = transform.localScale;
@@ -25,7 +27,7 @@ public class BMWi8Controller : CarBase {
         base.Update();
         BonnetUpdate();
         TrunkUpdate();
-     }
+    }
     public override void BonnetUpdate()
     {
         if (IsBonnetOpen)
@@ -62,17 +64,17 @@ public class BMWi8Controller : CarBase {
         CurrentTrunkAngle = Mathf.Clamp(CurrentTrunkAngle, 0, m_TrunkRotateAngle);
         m_Trunk.localRotation = Quaternion.Euler(CurrentTrunkAngle, 0, 0);
     }
-   
-    
+
+
     public void ChangeDoor(int DoorNum)
     {
-        if (Doors.Length > DoorNum&&DoorNum>=0)
+        if (Doors.Length > DoorNum && DoorNum >= 0)
         {
             Doors[DoorNum].IsDoorOpen = !Doors[DoorNum].IsDoorOpen;
         }
-            
+
     }
-   
+
 
     public void ChangeTrunk()
     {
@@ -83,11 +85,11 @@ public class BMWi8Controller : CarBase {
         IsBonnetOpen = !IsBonnetOpen;
     }
 
-    
+
     public void ChangeLight(int lightNum)
     {
         LightNum light = (LightNum)lightNum;
-        switch(light)
+        switch (light)
         {
             case LightNum.LeftBack:
                 IsLeftBackLightOpen = !IsLeftBackLightOpen;
@@ -108,11 +110,11 @@ public class BMWi8Controller : CarBase {
     {
         for (int i = 0; i < Doors.Length; i++)
             Doors[i].IsDoorOpen = false;
-    IsBonnetOpen = false;
-    IsTrunkOpen = false;
+        IsBonnetOpen = false;
+        IsTrunkOpen = false;
         if (explodePartManager != null)
             explodePartManager.Reset();
-    ChangeShellColor(0);
+        ChangeShellColor(0);
     }
     public override void Disintegrate()
     {
@@ -120,5 +122,24 @@ public class BMWi8Controller : CarBase {
         if (explodePartManager != null)
             explodePartManager.Disintegrate();
 
+    }
+    public override void GoForward()
+    {
+        transform.localPosition += transform.forward * DrivingModel.Instance.GetCarVolecity() / 600.0f * transform.localScale.z;
+        transform.Rotate(DrivingModel.Instance.Direction);
+        Wheel_1.transform.Rotate(-GetWheelSpeed(), 0, 0);
+        Wheel_2.transform.Rotate(GetWheelSpeed(), 0, 0);
+        Wheel_3.transform.Rotate(-GetWheelSpeed(), 0, 0);
+        Wheel_4.transform.Rotate(GetWheelSpeed(), 0, 0);
+    }
+
+    public override void GoBackward()
+    {
+        transform.localPosition -= transform.forward * DrivingModel.Instance.GetCarVolecity() / 600.0f * transform.localScale.z;
+        transform.Rotate(DrivingModel.Instance.Direction);
+        Wheel_1.transform.Rotate(GetWheelSpeed(), 0, 0);
+        Wheel_2.transform.Rotate(-GetWheelSpeed(), 0, 0);
+        Wheel_3.transform.Rotate(GetWheelSpeed(), 0, 0);
+        Wheel_4.transform.Rotate(-GetWheelSpeed(), 0, 0);
     }
 }
