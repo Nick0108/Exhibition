@@ -9,7 +9,7 @@ public class SubPool
     //预设
     GameObject m_prefab;
     //集合
-    List<GameObject>m_objects=new List<GameObject>(); 
+    List<GameObject> m_objects = new List<GameObject>();
     //名字标识
     public string Name
     {

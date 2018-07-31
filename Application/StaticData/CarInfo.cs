@@ -13,7 +13,7 @@ public class CarInfo
     {
         get
         {
-            return Consts.PrefabPath+Name;
+            return Consts.PrefabPath + Name;
         }
     }
 }

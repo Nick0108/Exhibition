@@ -100,7 +100,7 @@ public class Spawner : View
             if (carInfo != null)
             {
                 GameObject Car = Game.Instance.ObjectPool.Spawn(carInfo.Name);
-                gameModel.SelectARCarIndex = gameModel.ShowedCarList.Count - 1;//产生一个新的之后自动选择该汽车
+                //gameModel.SelectARCarIndex = gameModel.ShowedCarList.Count - 1;//产生一个新的之后自动选择该汽车
                 //状态重置
                 Car.transform.localPosition = Vector3.zero;
                 Car.transform.localRotation = Quaternion.identity;
@@ -108,13 +108,13 @@ public class Spawner : View
                 Car.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
                 Car.GetComponent<CarBase>().originalScale = Car.transform.localScale;
                 Car.GetComponent<CarBase>().HideShowCar(true);
+                Debug.Log(string.Format("SpawnCar(int CarID,bool isInARScene={0})", isInARScene));
             }
         }
         else
         {
             SpawnCar(CarID);
         }
-        Debug.Log(string.Format("SpawnCar(int CarID,bool isRealBody={0})", isInARScene));
     }
 
     private void SpawnCar(int CarID)
@@ -125,6 +125,7 @@ public class Spawner : View
             Game.Instance.ObjectPool.Spawn(carInfo.Name);
         }
         Debug.Log("SpawnCar(int CarID)");
+        GameDebugerLog.Instance.AddTipDebugLog(string.Format("SpawnCar(int CarID)"));
         // return null;
     }
 

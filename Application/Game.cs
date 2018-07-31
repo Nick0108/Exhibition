@@ -227,6 +227,7 @@ public class Game : ApplicationBase<Game>{
     //但是ARCore中的锚点根据相机位置会不断修正位置，不能通过改变锚点来来修改汽车位置，而且不能保证人们在使用时手机不会晃动（晃动会导致射线位置偏移，导致显示效果模型闪烁移动），
     //所以干脆就只通过旋转手机通过屏幕中心点射出射线来添加VirtualCar指导客户汽车将产生的位置
     private bool hasSpawnCar = false;
+    [HideInInspector]
     public bool hasShowARCar = false;
     /// <summary>
     /// AR模式下，产生一辆虚拟的黑色车指示将要产生的车
@@ -247,6 +248,8 @@ public class Game : ApplicationBase<Game>{
             gameModel.CurrentCar.HideShowCar(true);
             hasSpawnCar = true;
         }
+        if (gameModel.CurrentCar == null)
+            return;
         gameModel.CurrentCar.HideShowCar(true);//默认先隐藏汽车
         if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out ARTrackhit))
         {

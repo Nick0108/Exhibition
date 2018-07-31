@@ -33,7 +33,8 @@ public class DoorInfo
             targetQuaternion = isDoorOpen ? Quaternion.Euler(finalRotation) : Quaternion.identity;
         } }
 }
-public abstract class CarBase :ReusableObject{
+public abstract class CarBase : ReusableObject
+{
     public int CarID;
     //车门
     public float m_doorRotateSpeed = 20;//车门旋转速度
@@ -317,7 +318,7 @@ public abstract class CarBase :ReusableObject{
     }
     public override void OnUnSpawn()
     {
-        Game.Instance.gameModel.ShowedCarList.Remove(this);
+        //Game.Instance.gameModel.ShowedCarList.Remove(this);
     }
 
     public virtual void GoForward()

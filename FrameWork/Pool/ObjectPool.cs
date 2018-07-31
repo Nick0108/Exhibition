@@ -7,7 +7,7 @@ public class ObjectPool:Singleton<ObjectPool>
 {
     public string ResourceDir = "";
 
-    Dictionary<string,SubPool> m_pools=new Dictionary<string, SubPool>();
+    Dictionary<string, SubPool> m_pools = new Dictionary<string, SubPool>();
 
     //取对象
     public GameObject Spawn(string name)

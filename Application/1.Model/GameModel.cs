@@ -25,30 +25,26 @@ public class GameModel : Model
             return Consts.M_GameModel;
         }
     }
-    
+
 
     //public List<GameObject> CanSpawnCars = new List<GameObject>();
-    public int currentSpawnCarID = 0;
-    //已经产生的汽车
-    public int SelectARCarIndex = -1;
+
+
+    //public int SelectARCarIndex = 0;
     //public Directory<int, List<CaseInsensitiveCompare> ShowedCarList = new Directory<int, CarBase[]>();
-    public List<CarBase> ShowedCarList = new List<CarBase>();
     //public GameObject VirtualBodyCar;
+    //public bool HasFindGround = false;
+
+    //已经产生的汽车
+    public List<CarBase> ShowedCarList = new List<CarBase>();
+    public int currentSpawnCarID = 0;
     public CarBase CurrentCar
     {
         get
         {
-            if (ShowedCarList.Count > 0 && SelectARCarIndex < ShowedCarList.Count)
+            if (ShowedCarList.Count > 0)
             {
-                return ShowedCarList[SelectARCarIndex];
-                //if (Game.Instance.gameModel.state == State.ARCarShow)
-                //{
-                //    return ShowedCarList[SelectARCarIndex];
-                //}
-                //else
-                //{
-                //    return ShowedCarList[currentSpawnCarID];
-                //}
+                return ShowedCarList[currentSpawnCarID];
             }
             else
             {
