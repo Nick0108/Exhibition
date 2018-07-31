@@ -227,7 +227,7 @@ public class Game : ApplicationBase<Game>{
     //但是ARCore中的锚点根据相机位置会不断修正位置，不能通过改变锚点来来修改汽车位置，而且不能保证人们在使用时手机不会晃动（晃动会导致射线位置偏移，导致显示效果模型闪烁移动），
     //所以干脆就只通过旋转手机通过屏幕中心点射出射线来添加VirtualCar指导客户汽车将产生的位置
     private bool hasSpawnCar = false;
-    private bool hasShowARCar = false;
+    public bool hasShowARCar = false;
     /// <summary>
     /// AR模式下，产生一辆虚拟的黑色车指示将要产生的车
     /// </summary>
@@ -247,6 +247,7 @@ public class Game : ApplicationBase<Game>{
             gameModel.CurrentCar.HideShowCar(true);
             hasSpawnCar = true;
         }
+        gameModel.CurrentCar.HideShowCar(true);//默认先隐藏汽车
         if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out ARTrackhit))
         {
             if ((ARTrackhit.Trackable is DetectedPlane) &&
@@ -288,39 +289,6 @@ public class Game : ApplicationBase<Game>{
             }
 
         }
-
-//        }
-//        else
-//        {
-
-//            if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out ARTrackhit))
-//            {
-//                if ((ARTrackhit.Trackable is DetectedPlane) &&
-//                                Vector3.Dot(FirstPersonCamera.transform.position - ARTrackhit.Pose.position,
-//                                    ARTrackhit.Pose.rotation * Vector3.up) < 0)
-//                {
-//                    gameModel.CurrentCar.HideShowCar(false);
-//                }
-//                else
-//                {
-//#if UNITY_EDITOR
-//                    Debug.Log(ARTrackhit.Pose.position);
-//#endif
-//                    if (Input.touchCount > 0)//任意点击行为
-//                    {
-//                        SendEvent(Consts.E_SpawnCarAtHit, Consts.V_Spawner, new SpawnCarAtHitArgs { CarID = gameModel.currentSpawnCarID, Hit = ARTrackhit });
-//                        gameModel.CurrentCar.SetShowRealBody(true);//这里本来想把虚拟车和真车直接放一起，通过开关显示虚拟车还是真车，目前这种模式下就不需要了
-//                        gameModel.state = State.ARCarShow;//更改游戏状态为展示状态，Update中将调用ShowCarUpdate
-//                    }
-//                    else
-//                    {
-//                        gameModel.CurrentCar.transform.position = ARTrackhit.Pose.position;
-//                    }
-//                }
-
-//            }
-
-//        }
     }
     /// <summary>
     /// AR模式下，产生车辆后的展示阶段
@@ -344,30 +312,18 @@ public class Game : ApplicationBase<Game>{
             if (touch.phase == TouchPhase.Began)
             {
                 RaycastHit hit;
-
                 Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
-
-
                 if (Physics.Raycast(ray, out hit))
                 {
                     hit.transform.SendMessage("OnMouseDown",SendMessageOptions.DontRequireReceiver);
-//#if UNITY_EDITOR
-//                    Debug.Log(hit.transform.gameObject.name);
-//#endif
-
                 }
-
             }
             if (touch.phase == TouchPhase.Moved)
             {
-//#if UNITY_EDITOR
-//                Debug.Log(Input.touches[0].deltaPosition.x);
-//#endif
                 gameModel.CurrentCar.RotateX(-Input.touches[0].deltaPosition.x);
             }
             if (touch.phase == TouchPhase.Ended)
             {
-
 
             }
 

@@ -310,11 +310,10 @@ public abstract class CarBase :ReusableObject{
     public virtual void Reset() { }
   
     public virtual void Disintegrate(){}
+
     public override void OnSpawn()
     {
         Game.Instance.gameModel.ShowedCarList.Add(this);
-        //transform.position = Vector3.zero;
-        //transform.rotation = Quaternion.identity;
     }
     public override void OnUnSpawn()
     {

@@ -1,7 +1,7 @@
 ﻿/* Create by @未知
  * Create time: 2018.06？
  * Discrition: 根据handleEvent传入的参数产生对应的汽车
- * Modify：@Zidong（2018.07.30） 注释掉已经不再用的方法与判断
+ * Modify：@Zidong（2018.07.31） 注释掉已经不再用的方法与判断
  */
 using UnityEngine;
 using System.Collections;
@@ -16,7 +16,6 @@ public class Spawner : View
   
     public override void RegisterEvents()
     {
-        //
         AttationEvents.Add(Consts.E_SpawnCar);
         //AttationEvents.Add(Consts.E_SpawnCarAt);
         //AttationEvents.Add(Consts.E_SpawnCarAtHit);

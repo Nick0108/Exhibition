@@ -16,7 +16,6 @@ public class GameModel : Model
 {
 
     public State state = State.None;
-    public bool HasFindGround = false;
     
     //所有关卡
     public override string Name
