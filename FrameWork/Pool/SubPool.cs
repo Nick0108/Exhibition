@@ -44,20 +44,20 @@ public class SubPool
             go = GameObject.Instantiate<GameObject>(m_prefab);
             m_objects.Add(go);
             //选择2，创建物体是将其挂到Game上保证在重载关卡时不消失
-
-            ////Transform parent = Game.Instance.transform.Find(m_prefab.name);
-            //if (parent != null)
-            //{
-            //    go.transform.parent = parent;
-            //}
-            //else
-            //{
-            //    GameObject parentgo=new GameObject();
-            //    parentgo.name = m_prefab.name;
-            //    //parentgo.transform.parent = Game.Instance.transform;
-            //    parent = parentgo.transform;
-            //}
-            //go.transform.parent = parent;
+            
+            Transform parent = Game.Instance.transform.Find(m_prefab.name);
+            if (parent != null)
+            {
+                go.transform.parent = parent;
+            }
+            else
+            {
+                GameObject parentgo = new GameObject();
+                parentgo.name = m_prefab.name;
+                parentgo.transform.parent = Game.Instance.transform;
+                parent = parentgo.transform;
+            }
+            go.transform.parent = parent;
         }
         go.SetActive(true);
         go.SendMessage("OnSpawn",SendMessageOptions.DontRequireReceiver);

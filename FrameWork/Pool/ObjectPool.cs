@@ -33,12 +33,14 @@ public class ObjectPool:Singleton<ObjectPool>
         }
         pool.UnSpawn(go);
     }
+
     //回收所有对象
     public void UnSpawnAll()
     {
         foreach (SubPool p in m_pools.Values)
             p.UnSpawnAll();
     }
+
     //创建新子池子
     void RegisterNew(string name)
     {
