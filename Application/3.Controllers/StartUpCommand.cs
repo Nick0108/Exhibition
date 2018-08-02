@@ -19,7 +19,7 @@ class StartUpCommand : Controller
        //RegisterView(Game.Instance.GetComponent<UIManager>());
        //RegisterView(Game.Instance.GetComponent<Spawner>());
         Game.Instance.gameModel = gameModel;
-        gameModel.Init();
+        //gameModel.Init();
        
     }
     

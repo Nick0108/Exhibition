@@ -36,33 +36,33 @@ public class GameModel : Model
     //public bool HasFindGround = false;
 
     //已经产生的汽车
-    public List<CarBase> ShowedCarList = new List<CarBase>();
-    public int currentSpawnCarID = 0;
-    public CarBase CurrentCar
-    {
-        get
-        {
-            if (ShowedCarList.Count > 0)
-            {
-                return ShowedCarList[currentSpawnCarID];
-            }
-            else
-            {
-                Debug.LogError("该汽车的SelectARCarIndex不能使用");
-                return null;
-            }
-        }
-    }
+    
+    //public int currentSpawnCarID = 0;
+    //public CarBase CurrentCar
+    //{
+    //    get
+    //    {
+    //        if (ShowedCarList.Count > 0)
+    //        {
+    //            return ShowedCarList[ExhibitionModel.Instance.ExhibitingCarIndex];
+    //        }
+    //        else
+    //        {
+    //            Debug.LogError("该汽车的SelectARCarIndex不能使用");
+    //            return null;
+    //        }
+    //    }
+    //}
 
-    public void Init()
-    {
+    //public void Init()
+    //{
         
-    }
-    public CarBase GetCar(int index)
-    {
-        if (ShowedCarList.Count > 0)
-            return ShowedCarList[index];
-        else
-            return null;
-    }
+    //}
+    //public CarBase GetCar(int index)
+    //{
+    //    if (ShowedCarList.Count > 0)
+    //        return ShowedCarList[index];
+    //    else
+    //        return null;
+    //}
 }

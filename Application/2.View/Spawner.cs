@@ -96,18 +96,14 @@ public class Spawner : View
     {
         if (isInARScene)
         {
+            //AR场景不走对象池，因为不可复用
             CarInfo carInfo = StaticData.Instance.GetCarInfo(CarID);
             if (carInfo != null)
             {
-                GameObject Car = Game.Instance.ObjectPool.Spawn(carInfo.Name);
+                GameObject Car = Instantiate(Resources.Load<GameObject>(carInfo.Path));
                 //gameModel.SelectARCarIndex = gameModel.ShowedCarList.Count - 1;//产生一个新的之后自动选择该汽车
-                //状态重置
-                Car.transform.localPosition = Vector3.zero;
-                Car.transform.localRotation = Quaternion.identity;
-                //缩小汽车
-                Car.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-                Car.GetComponent<CarBase>().originalScale = Car.transform.localScale;
-                Car.GetComponent<CarBase>().HideShowCar(true);
+                Car.GetComponent<CarBase>().ResetCarToSpawn();
+                ARModel.Instance.CurrentARCar = Car.GetComponent<CarBase>();
                 Debug.Log(string.Format("SpawnCar(int CarID,bool isInARScene={0})", isInARScene));
             }
         }
@@ -125,7 +121,6 @@ public class Spawner : View
             Game.Instance.ObjectPool.Spawn(carInfo.Name);
         }
         Debug.Log("SpawnCar(int CarID)");
-        GameDebugerLog.Instance.AddTipDebugLog(string.Format("SpawnCar(int CarID)"));
         // return null;
     }
 
