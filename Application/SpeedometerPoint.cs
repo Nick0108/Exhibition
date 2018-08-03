@@ -26,7 +26,7 @@ public class SpeedometerPoint : MonoBehaviour
 
     private void Update()
     {
-        if (!Game.Instance.IsDriving)
+        if (!DrivingModel.Instance.IsDriving)
         {
             return;
         }

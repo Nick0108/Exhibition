@@ -38,16 +38,6 @@ public class Game : ApplicationBase<Game>{
     private Touch oldTouch2;  //上次触摸点2(手指2)  
 
     /// <summary>
-    /// 是否是驾驶模式
-    /// </summary>
-    private bool driving = false;
-    public bool IsDriving
-    {
-        get { return driving; }
-        set { driving = value; }
-    }
-
-    /// <summary>
     /// 是否隐藏云点和平台
     /// </summary>
     private bool hideCloudPoint = false;
@@ -153,7 +143,7 @@ public class Game : ApplicationBase<Game>{
 
     private void ExhibitionUpdate()
     {
-        if (IsDriving)
+        if (DrivingModel.Instance.IsDriving)
         {
             return;
         }
@@ -166,11 +156,6 @@ public class Game : ApplicationBase<Game>{
                 RaycastHit hit;
 
                 Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
-
-#if UNITY_EDITOR
-                Debug.Log("biubiubiu");
-                Debug.Log(Input.touchCount);
-#endif
                 if (Physics.Raycast(ray, out hit))
                 {
                     hit.transform.SendMessage("OnMouseDown");//这里做了统一处理，在电脑上和安卓端都用OnMouseDown方法来做点击事件
@@ -186,9 +171,9 @@ public class Game : ApplicationBase<Game>{
 #if UNITY_EDITOR
                 Debug.Log(Input.touches[0].deltaPosition.x);
 #endif
-                if(gameModel.CurrentCar != null)
+                if(ExhibitionModel.Instance.CurrentCar != null)
                 {
-                    gameModel.CurrentCar.RotateX(-Input.touches[0].deltaPosition.x);
+                    ExhibitionModel.Instance.CurrentCar.RotateX(-Input.touches[0].deltaPosition.x);
                 }
                 
             }
@@ -213,9 +198,9 @@ public class Game : ApplicationBase<Game>{
             //两个距离之差，为正表示放大手势， 为负表示缩小手势  
             float offset = newDistance - oldDistance;
 
-            if (gameModel.CurrentCar != null)
+            if (ExhibitionModel.Instance.CurrentCar != null)
             {
-                gameModel.CurrentCar.ChangeScale(offset);
+                ExhibitionModel.Instance.CurrentCar.ChangeScale(offset);
             }
             //记住最新的触摸点，下次使用  
             oldTouch1 = newTouch1;
@@ -226,15 +211,13 @@ public class Game : ApplicationBase<Game>{
     //VirtualCar 是用一个黑色透明的汽车模型来向用户展示将要产生汽车的位置，本来是要做成长按生成VirtualCar松开后产生真汽车吧VirtualCar隐藏掉，
     //但是ARCore中的锚点根据相机位置会不断修正位置，不能通过改变锚点来来修改汽车位置，而且不能保证人们在使用时手机不会晃动（晃动会导致射线位置偏移，导致显示效果模型闪烁移动），
     //所以干脆就只通过旋转手机通过屏幕中心点射出射线来添加VirtualCar指导客户汽车将产生的位置
-    private bool hasSpawnCar = false;
-    [HideInInspector]
-    public bool hasShowARCar = false;
+    
     /// <summary>
     /// AR模式下，产生一辆虚拟的黑色车指示将要产生的车
     /// </summary>
     private void SpawnCarUpdate()
     {
-        if (IsDriving)
+        if (DrivingModel.Instance.IsDriving)
         {
             return;
         }
@@ -242,15 +225,27 @@ public class Game : ApplicationBase<Game>{
         {
             IsHideCloudPoint = false;
         }
-        if (!hasSpawnCar)
+        if (!ARModel.Instance.HasSpawnARCar)
         {
-            SendEvent(Consts.E_SpawnCar, Consts.V_Spawner, new SpawnCarArgs(gameModel.currentSpawnCarID, true));
-            gameModel.CurrentCar.HideShowCar(true);
-            hasSpawnCar = true;
+            SendEvent(Consts.E_SpawnCar, Consts.V_Spawner, new SpawnCarArgs(ExhibitionModel.Instance.CurrentARCarId, true));
+            ARModel.Instance.CurrentARCar.HideShowCar(true);
+            ARModel.Instance.HasSpawnARCar = true;
         }
-        if (gameModel.CurrentCar == null)
+        if (ARModel.Instance.CurrentARCar == null)
             return;
-        gameModel.CurrentCar.HideShowCar(true);//默认先隐藏汽车
+        ARModel.Instance.CurrentARCar.HideShowCar(true);//默认先隐藏汽车
+        ARModel.Instance.CanPlaceObject = false;
+        if (ARModel.Instance.ResetingCar)
+        {
+            if(Input.touchCount > 0)
+            {
+                return;
+            }
+            else
+            {
+                ARModel.Instance.ResetingCar = false;
+            }
+        }
         if (Frame.Raycast(Screen.width / 2, Screen.height / 2, raycastFilter, out ARTrackhit))
         {
             if ((ARTrackhit.Trackable is DetectedPlane) &&
@@ -258,36 +253,43 @@ public class Game : ApplicationBase<Game>{
                                 ARTrackhit.Pose.rotation * Vector3.up) < 0)
             {
                 //当射线角度必须是0-180度，在背面不做处理
-                gameModel.CurrentCar.HideShowCar(true);
+                ARModel.Instance.CurrentARCar.HideShowCar(true);
+                ARModel.Instance.CanPlaceObject = false;
             }
             else
             {
                 if(!(ARTrackhit.Trackable is DetectedPlane))
                 {
-                    gameModel.CurrentCar.HideShowCar(true);
+                    ARModel.Instance.CanPlaceObject = false;
+                    ARModel.Instance.CurrentARCar.HideShowCar(true);
                     return;
                 }
-                if (!hasShowARCar)
+                if (!ARModel.Instance.HasShowARCar)
                 {
                     if (Input.touchCount > 0)//任意点击行为
                     {
-                        gameModel.CurrentCar.HideShowCar(false);
-                        gameModel.CurrentCar.SetShowRealBody(true);//这里本来想把虚拟车和真车直接放一起，通过开关显示虚拟车还是真车，目前这种模式下就不需要了
-                        hasShowARCar = true;
+                        ARModel.Instance.CurrentARCar.HideShowCar(false);
+                        ARModel.Instance.CurrentARCar.SetShowRealBody(true);//这里本来想把虚拟车和真车直接放一起，通过开关显示虚拟车还是真车，目前这种模式下就不需要了
+                        ARModel.Instance.HasShowARCar = true;
+                        if (ARModel.Instance.ShowArCar != null)
+                        {
+                            ARModel.Instance.ShowArCar(true);
+                        }
                         gameModel.state = State.ARCarShow;//更改游戏状态为展示状态，Update中将调用ShowCarUpdate
                     }
                     else
                     {
-                        gameModel.CurrentCar.HideShowCar(false);
-                        gameModel.CurrentCar.SetShowRealBody(false);
-                        gameModel.CurrentCar.transform.position = ARTrackhit.Pose.position;
+                        ARModel.Instance.CurrentARCar.HideShowCar(false);
+                        ARModel.Instance.CurrentARCar.SetShowRealBody(false);
+                        ARModel.Instance.CurrentARCar.transform.position = ARTrackhit.Pose.position;
+                        ARModel.Instance.CanPlaceObject = true;
                     }
                 }
                 else
                 {
-                    gameModel.CurrentCar.HideShowCar(false);
-                    gameModel.CurrentCar.SetShowRealBody(true);
-                    gameModel.CurrentCar.transform.position = ARTrackhit.Pose.position;
+                    ARModel.Instance.CurrentARCar.HideShowCar(false);
+                    ARModel.Instance.CurrentARCar.SetShowRealBody(true);
+                    ARModel.Instance.CurrentARCar.transform.position = ARTrackhit.Pose.position;
                 }
             }
 
@@ -298,7 +300,7 @@ public class Game : ApplicationBase<Game>{
     /// </summary>
     private void ShowCarUpdate()
     {
-        if(IsDriving)
+        if(DrivingModel.Instance.IsDriving)
         {
             return;
         }
@@ -323,7 +325,7 @@ public class Game : ApplicationBase<Game>{
             }
             if (touch.phase == TouchPhase.Moved)
             {
-                gameModel.CurrentCar.RotateX(-Input.touches[0].deltaPosition.x);
+                ARModel.Instance.CurrentARCar.RotateX(-Input.touches[0].deltaPosition.x);
             }
             if (touch.phase == TouchPhase.Ended)
             {
@@ -353,9 +355,9 @@ public class Game : ApplicationBase<Game>{
                 //两个距离之差，为正表示放大手势， 为负表示缩小手势  
                 float offset = newDistance - oldDistance;
 
-                if (gameModel.CurrentCar != null)
+                if (ARModel.Instance.CurrentARCar != null)
                 {
-                    gameModel.CurrentCar.ChangeScale(offset);
+                    ARModel.Instance.CurrentARCar.ChangeScale(offset);
                 }
                 //记住最新的触摸点，下次使用  
                 oldTouch1 = newTouch1;

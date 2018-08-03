@@ -62,7 +62,7 @@ public abstract class CarBase : ReusableObject
     public float MinScale = 0.5f;
     public bool TurnMaxScale = false;
     private bool lastIsMaxScale = false;
-    protected float AutoScaleSpeed = 10.0f;
+    protected float AutoScaleSpeed = 20.0f;
 
     //引擎盖和后备箱的旋转方式由子类实现
     public virtual void BonnetUpdate()
@@ -113,6 +113,7 @@ public abstract class CarBase : ReusableObject
     public Transform Wheel_3;
     public Transform Wheel_4;
 
+    protected bool AllInteractive = false;
 
     //public float AlphaSmooth = 1;
     public float MinAlpha = 0.3f;//汽车透明化的透明程度的最小值
@@ -173,6 +174,50 @@ public abstract class CarBase : ReusableObject
         }
     }
 
+    public virtual void ChangeAllLights(bool isLightOn)
+    {
+        IsRightBackLightOpen = isLightOn;
+        IsRightFrontLightOpen = isLightOn;
+        IsLeftBackLightOpen = isLightOn;
+        IsLeftFrontLightOpen = isLightOn;
+    }
+
+    public virtual void ChangeAllDoors(bool isOpen)
+    {
+        foreach(DoorInfo door in Doors)
+        {
+            door.IsDoorOpen = isOpen;
+        }
+    }
+
+    public virtual void ChangeTrunk()
+    {
+        IsTrunkOpen = !IsTrunkOpen;
+    }
+
+    public virtual void ChangeBonnet()
+    {
+        IsBonnetOpen = !IsBonnetOpen;
+    }
+
+    public virtual void ChangeAllInterActive(bool isOn)
+    {
+        AllInteractive = isOn;
+        ChangeAllLights(isOn);
+        ChangeAllDoors(isOn);
+        IsTrunkOpen = isOn;
+        IsBonnetOpen = isOn;
+    }
+
+    public virtual void ChangeAllInterActive()
+    {
+        AllInteractive = !AllInteractive;
+        ChangeAllLights(AllInteractive);
+        ChangeAllDoors(AllInteractive);
+        IsTrunkOpen = AllInteractive;
+        IsBonnetOpen = AllInteractive;
+    }
+
     private GameObject VirtualBody;
     private GameObject RealBody;
     private bool isShowRealBody = false;
@@ -220,10 +265,11 @@ public abstract class CarBase : ReusableObject
     }
     public virtual void ChangeScale(float offset)
     {
-        if (Game.Instance.IsDriving)
+        if (DrivingModel.Instance.IsDriving)
         {
             return;
         }
+        if (IsAutoScaleing()) return;
         float scaleFactor = offset * scaleSmooth;
         currentScraling += scaleFactor;
         currentScraling = Mathf.Clamp(currentScraling, MinScale, MaxScale);
@@ -232,7 +278,7 @@ public abstract class CarBase : ReusableObject
     }
     public virtual void RotateX(float offset)
     {
-        if (Game.Instance.IsDriving)
+        if (DrivingModel.Instance.IsDriving)
         {
             return;
         }
@@ -314,11 +360,19 @@ public abstract class CarBase : ReusableObject
 
     public override void OnSpawn()
     {
-        Game.Instance.gameModel.ShowedCarList.Add(this);
+        ExhibitionModel.Instance.ShowedCarList.Add(this);
     }
     public override void OnUnSpawn()
     {
-        //Game.Instance.gameModel.ShowedCarList.Remove(this);
+        if (Game.Instance.gameModel.state == State.Spawn || Game.Instance.gameModel.state == State.ARCarShow)
+        {
+            ARModel.Instance.CurrentARCar = null;
+        }
+        else
+        {
+            //ExhibitionModel.Instance.ShowedCarList.Remove(this);
+        }
+        Debug.Log("OnUnSpawn"+ExhibitionModel.Instance.ShowedCarList.Count);
     }
 
     public virtual void GoForward()
@@ -346,10 +400,15 @@ public abstract class CarBase : ReusableObject
     {
         if (DrivingModel.Instance.GetCarVolecity() > 0)
         {
-            CarBase car = Game.Instance.gameModel.CurrentCar;
+#if UNITY_EDITOR
+            CarBase car = ExhibitionModel.Instance.CurrentCar;
+#else
+            CarBase car = ARModel.Instance.CurrentARCar;
+#endif
+
             if (car != null)
             {
-                if (DrivingModel.Instance.isCarForward)
+                if (DrivingModel.Instance.IsCarForward)
                 {
                     car.GoForward();
                 }
@@ -389,8 +448,33 @@ public abstract class CarBase : ReusableObject
         }
     }
 
+    public bool IsAutoScaleing()
+    {
+        if(TurnMaxScale != lastIsMaxScale)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     protected float GetWheelSpeed()
     {
         return WheelSpeedPara * (DrivingModel.Instance.GetCarVolecity() / DrivingModel.MAX_VOLECITY);
+    }
+
+    public void ResetCarToSpawn()
+    {
+        //状态重置
+        this.transform.localPosition = Vector3.zero;
+        this.transform.localRotation = Quaternion.identity;
+        //根据玩家选择的大小放置汽车
+        this.transform.localScale = ExhibitionModel.Instance.CurrentSelectSize;
+        this.currentScraling = ExhibitionModel.Instance.CurrentSelectSize == ExhibitionModel.Instance.ModelSize ? 1.0f : 10.0f;
+        TurnMaxScale = lastIsMaxScale = ExhibitionModel.Instance.CurrentSelectSize == ExhibitionModel.Instance.ModelSize ? false : true;
+        this.originalScale = ExhibitionModel.Instance.ModelSize;
+        this.HideShowCar(true);
     }
 }

@@ -17,8 +17,8 @@ public class HideCloudPoint : MonoBehaviour {
     private bool LastShowCloud = false;
 	// Use this for initialization
 	void Start () {
-		
-	}
+        //Game.Instance.gameModel.state = State.Spawn;
+    }
 	
 	// Update is called once per frame
 	void Update () {

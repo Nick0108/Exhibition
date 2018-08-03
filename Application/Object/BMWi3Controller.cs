@@ -73,14 +73,14 @@ public class BMWi3Controller : CarBase
     }
 
 
-    public void ChangeTrunk()
-    {
-        IsTrunkOpen = !IsTrunkOpen;
-    }
-    public void ChangeBonnet()
-    {
-        IsBonnetOpen = !IsBonnetOpen;
-    }
+    //public override void ChangeTrunk()
+    //{
+    //    IsTrunkOpen = !IsTrunkOpen;
+    //}
+    //public override void ChangeBonnet()
+    //{
+    //    IsBonnetOpen = !IsBonnetOpen;
+    //}
 
 
     public void ChangeLight(int lightNum)
@@ -121,7 +121,7 @@ public class BMWi3Controller : CarBase
 
     }
 
-    public void SpecialReset()
+    private void SpecialReset()
     {
         CurrentTrunkAngle = 0;
         IsTrunkOpen = false;

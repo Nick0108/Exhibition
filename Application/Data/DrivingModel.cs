@@ -21,7 +21,33 @@ public class DrivingModel
     public const float RESISTANCE_PARE = 0.5f;
     public const float STOP_POWER = 10.0f;
 
-    public bool isCarForward = true;
+    /// <summary>
+    /// 是否是驾驶模式
+    /// </summary>
+    private bool driving = false;
+    public bool IsDriving
+    {
+        get { return driving; }
+        set { driving = value; }
+    }
+
+    private bool isCarForward = true;
+    /// <summary>
+    /// 汽车的行驶方向，true为前进
+    /// </summary>
+    public bool IsCarForward
+    {
+        get
+        {
+            return isCarForward;
+        }
+
+        private set
+        {
+            isCarForward = value;
+        }
+    }
+
     private bool carRuning = false;
     /// <summary>
     /// 汽车是否正在跑动中
@@ -38,13 +64,27 @@ public class DrivingModel
             carRuning = value;
         }
     }
-    public Vector3 Direction;
 
-    public bool HideCloudPoint = false;
+    private Vector3 direction = new Vector3(0, 0, 0);
+    /// <summary>
+    /// 汽车的方向值，根据该值对方向进行调整
+    /// </summary>
+    public Vector3 Direction
+    {
+        get
+        {
+            return direction;
+        }
 
+        set
+        {
+            direction = value;
+        }
+    }
+
+    
 
     private float carVolecity = 0;
-
     /// <summary>
     /// 改变汽车速度（km/h）
     /// </summary>
@@ -80,7 +120,7 @@ public class DrivingModel
     /// </summary>
     public void ChangeCarLookward()
     {
-        isCarForward = !isCarForward;
+        IsCarForward = !IsCarForward;
     }
 
     /// <summary>
@@ -115,5 +155,17 @@ public class DrivingModel
                 carVolecity = 0;
             }
         }
+    }
+
+    /// <summary>
+    /// 退出AR模式时调用，重置所有跟驾驶模式相关的值
+    /// </summary>
+    public void ResetAllDrivingValue()
+    {
+        IsDriving = false;
+        CarRuning = false;
+        IsCarForward = true;
+        StopCarVolecity();
+        Direction = new Vector3(0, 0, 0);
     }
 }

@@ -35,6 +35,7 @@ public static class Consts
     public const string E_ExitScene = "E_ExitScene";//Args int SceneIndex
     public const string E_EnterScene = "E_EnterScene";
     public const string E_TurnDirection = "E_TurnDirection";//Args bool isRight;
+    public const string E_ShowOrRescanARCar = "E_ShowOrRescanARCar";
 
 }
 
